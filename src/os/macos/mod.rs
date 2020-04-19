@@ -14,7 +14,6 @@ use crate::{CursorStyle, MenuHandle, MenuItem, MenuItemHandle};
 // use menu::Menu;
 
 use std::ffi::CString;
-use std::mem;
 use std::os::raw;
 use std::os::raw::{c_char, c_uchar, c_void};
 use std::ptr;
@@ -232,7 +231,7 @@ pub struct Window {
 }
 
 unsafe extern "C" fn key_callback(window: *mut c_void, key: i32, state: i32) {
-    let win: *mut Window = mem::transmute(window);
+    let win = window as *mut Window;
 
     let s = state == 1;
 
@@ -246,7 +245,7 @@ unsafe extern "C" fn key_callback(window: *mut c_void, key: i32, state: i32) {
 }
 
 unsafe extern "C" fn char_callback(window: *mut c_void, code_point: u32) {
-    let win: *mut Window = mem::transmute(window);
+    let win = window as *mut Window;
 
     // Taken from GLFW
     if code_point < 32 || (code_point > 126 && code_point < 160) {
@@ -295,7 +294,7 @@ impl Window {
                 mfb_topmost(handle, true);
             }
 
-            if handle == ptr::null_mut() {
+            if handle.is_null() {
                 return Err(Error::WindowCreate("Unable to open Window".to_owned()));
             }
 
@@ -373,7 +372,7 @@ impl Window {
             Self::set_mouse_data(self);
             mfb_set_key_callback(
                 self.window_handle,
-                mem::transmute(self),
+                self as *mut Window as *mut c_void,
                 key_callback,
                 char_callback,
             );
@@ -390,7 +389,7 @@ impl Window {
             Self::set_mouse_data(self);
             mfb_set_key_callback(
                 self.window_handle,
-                mem::transmute(self),
+                self as *mut Window as *mut c_void,
                 key_callback,
                 char_callback,
             );
@@ -581,7 +580,7 @@ impl Window {
             }
         };
 
-        return factor;
+        factor
     }
 }
 
@@ -733,6 +732,7 @@ impl Menu {
         }
     }
 
+    #[allow(clippy::trivially_copy_pass_by_ref)]
     pub fn remove_item(&mut self, handle: &MenuItemHandle) {
         unsafe {
             mfb_remove_menu_item(self.menu_handle, handle.0);

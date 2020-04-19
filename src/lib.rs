@@ -759,7 +759,7 @@ pub const MENU_KEY_CTRL: usize = 8;
 /// Alt key
 pub const MENU_KEY_ALT: usize = 16;
 
-const MENU_ID_SEPARATOR: usize = 0xffffffff;
+const MENU_ID_SEPARATOR: usize = 0xffff_ffff;
 
 ///
 /// Used on Unix (Linux, FreeBSD, etc) as menus aren't supported in a native where there.
@@ -870,6 +870,7 @@ impl Menu {
     }
 
     #[inline]
+    #[allow(clippy::trivially_copy_pass_by_ref)]
     /// Removes an item from the menu
     pub fn remove_item(&mut self, item: &MenuItemHandle) {
         self.0.remove_item(item)
